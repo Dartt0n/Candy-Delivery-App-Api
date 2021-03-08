@@ -1,8 +1,10 @@
 from useful_functions import validate_time_range, find_by
-from valdec.decorators import validate
 from pydantic import StrictStr, StrictInt
+from valdec.decorators import validate
+from statistics import mean
 from typing import List
 from order import Order
+from time import time
 
 
 class Courier:
@@ -64,8 +66,9 @@ class Courier:
     def __set_free_load_capacity(self, free_load_capacity):
         self.__free_load_capacity = free_load_capacity
 
-    free_load_capacity = property(fget=__get_free_load_capacity,
-                                  fset=__set_free_load_capacity)
+    free_load_capacity = property(
+        fget=__get_free_load_capacity, fset=__set_free_load_capacity
+    )
 
     def __get_id(self):
         return self.__id
@@ -83,8 +86,16 @@ class Courier:
             regions: List[StrictInt],
             working_hours: List[StrictStr]
     ):
-        self.__active_orders = []
-        self.earnings = 0
+        # активные заказы - массив словарей следующей структуры:
+        #          'order' -> Обьект класса Order, сам заказ соот
+        #          'accept time' -> время принятия заказа
+        self.__active_orders = []  # ('order': Order, 'accept time': int)
+
+        # Словарь значений `район - массив длительностей доставки`
+        self.__regions_delivery_durations = {}  # region: delivery_durations
+
+        self.__number_of_divorces = 0
+        self.__earnings = 0
         self.__load_capacity = 0
         self.__free_load_capacity = 0
 
@@ -97,18 +108,69 @@ class Courier:
     def can_take(self, order: Order) -> bool:
         if order.delivery_hours not in self.__working_hours:
             return False  # не работает в эти часы
+
         if order.region not in self.__regions:
             return False  # не работает в этом регионе
+
         if self.__free_load_capacity - order.weight < 0:
             return False  # не может нести больше заказов
+
         return True
 
     @validate
-    def complete_order(self, order_id: int):
+    def complete_order(self, order_id: StrictInt):
         # находим заказ удовлетовряющий условию
-        x = find_by(self.__active_orders, lambda it: it.id == order_id)
+        completed_order = find_by(
+            self.__active_orders,
+            lambda it: it['order'].id == order_id
+        )
+
         # удаляем его из активных
-        self.__active_orders.remove(x)
-        # выполняем дополнительные вычисления
-        self.free_load_capacity += x.weight
-        # todo handle completed order
+        del self.__active_orders[completed_order]
+
+        # освобождаем место у курьера
+        self.free_load_capacity += completed_order['order'].weight
+
+        # сохраняем длительность доставки
+        delivery_duration = time() - completed_order['accept time']
+
+        # если это не первая доставка у этого курьера в этом районе
+        if completed_order['order'].region in self.__regions_delivery_durations:
+            self.__regions_delivery_durations[
+                completed_order['order'].region
+            ].append(delivery_duration)  # добавляем длительность доставки
+            # в массив длительностей доставки (для будущего просчета
+            # среднего времени доставки)
+        else:
+            # если первая
+            self.__regions_delivery_durations[
+                completed_order.region['order']
+            ] = [delivery_duration]  # создаем этот массив
+
+        # перерасчитываем рейтинг и заработок
+
+    def __accept_order(self, order: Order):
+        if not self.can_take(order):
+            raise ValueError('Can not accept this order')
+        self.__active_orders.append({
+            'order': order,
+            'accept time': time()
+        })
+        self.free_load_capacity -= order.weight
+
+    @validate
+    def accept_orders(self, orders: List[Order]):
+        for order in orders:
+            self.__accept_order(order)
+        self.__number_of_divorces += 1
+
+    def __calculate_rating(self):
+        td = []
+        for durations in self.__regions_delivery_durations.values():
+            td.append(mean(durations))  #
+        t = min(td)
+        rating = (60 * 60 - min(t, 60 * 60)) / (60 * 60) * 5
+        self.__rating = rating
+
+    def __calculate_earnings(self):
+        self.__earnings = self.__number_of_divorces * 500 * self.__earn_rate
