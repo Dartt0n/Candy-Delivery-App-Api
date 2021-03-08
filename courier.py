@@ -1,8 +1,9 @@
 from useful_functions import validate_time_range, find_by
 from pydantic import StrictStr, StrictInt
 from valdec.decorators import validate
+from daterange import DateRange
 from statistics import mean
-from typing import List
+from typing import List, Dict, Any
 from order import Order
 from time import time
 
@@ -89,13 +90,14 @@ class Courier:
         # активные заказы - массив словарей следующей структуры:
         #          'order' -> Обьект класса Order, сам заказ соот
         #          'accept time' -> время принятия заказа
-        self.__active_orders = []  # ('order': Order, 'accept time': int)
+        self.__active_orders: List[Dict[str, Any]] = []
 
         # Словарь значений `район - массив длительностей доставки`
-        self.__regions_delivery_durations = {}  # region: delivery_durations
+        self.__regions_delivery_durations: Dict[int, List[int]] = {}
 
         self.__number_of_divorces = 0
         self.__earnings = 0
+        self.__rating = 0
         self.__load_capacity = 0
         self.__free_load_capacity = 0
 
@@ -106,7 +108,7 @@ class Courier:
 
     @validate
     def can_take(self, order: Order) -> bool:
-        if order.delivery_hours not in self.__working_hours:
+        if DateRange(order.delivery_hours) not in DateRange(self.__working_hours):
             return False  # не работает в эти часы
 
         if order.region not in self.__regions:
