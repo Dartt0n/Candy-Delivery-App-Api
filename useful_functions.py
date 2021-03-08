@@ -1,7 +1,13 @@
 from math import inf
 from valdec.decorators import validate
 from regex import match
+from typing import List, Callable
 
+
+def find_by(arr: List, condition: Callable):
+    for i in arr:
+        if condition(i):
+            return i
 
 @validate
 def validate_time_range(time_range: str):
