@@ -54,10 +54,9 @@ class Courier:
         return self.__working_hours
 
     def __set_working_hours(self, working_hours):
-        # проверяем валидность рабочего графика
+        self.__working_hours = []
         for time_range in working_hours:
-            validate_time_range(time_range)
-        self.__working_hours = working_hours
+            self.__working_hours.append(DateRange(time_range))
 
     working_hours = property(fget=__get_working_hours, fset=__set_working_hours)
 
@@ -121,11 +120,15 @@ class Courier:
 
     @validate
     def complete_order(self, order_id: StrictInt):
+        # # -------------------------
+        # # Fix due to new conditions
+        # # -------------------------
         # находим заказ удовлетовряющий условию
-        completed_order = find_by(
+        completed_order_index = find_by(
             self.__active_orders,
             lambda it: it['order'].id == order_id
         )
+        completed_order = self.__active_orders[completed_order_index]
 
         # удаляем его из активных
         del self.__active_orders[completed_order]
@@ -176,3 +179,11 @@ class Courier:
 
     def __calculate_earnings(self):
         self.__earnings = self.__number_of_divorces * 500 * self.__earn_rate
+
+    def to_dict(self):
+        return {
+            "courier_id": self.id,
+            "courier_type": self.courier_type,
+            "region": self.regions,
+            "working_hours": [str(working_hours) for working_hours in self.working_hours]
+        }

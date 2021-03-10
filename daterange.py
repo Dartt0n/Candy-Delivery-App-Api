@@ -3,10 +3,10 @@ from datetime import datetime, timedelta
 from typing import Iterator, Union
 from pydantic import StrictStr
 from valdec.decorators import validate
-from validators import validate_time_range
+from useful_functions import validate_time_range
 
 
-class DateRange(Iterable):
+class DateRange:
     @validate
     def __init__(self, time_range: StrictStr):
         validate_time_range(time_range)
@@ -14,16 +14,13 @@ class DateRange(Iterable):
         self.start, self.end = time_range.split('-')
 
         self.start = datetime.strptime(self.start, '%H:%M')
-        self.end = datetime.strptime(self.end, '%H:%M') + timedelta(minutes=1)
+        self.end = datetime.strptime(self.end, '%H:%M')
 
-    def __iter__(self) -> Iterator:
-        return self
+        if self.end <= self.start:
+            raise ValueError(f"Wrong time range: {time_range}")
 
-    def __next__(self):
-        self.start += timedelta(minutes=1)
-        if self.start == self.end:
-            raise StopIteration
-        return self.start.strftime("%H:%M")
+    def __str__(self) -> str:
+        return f'{self.start.strftime("%H:%M")}-{self.end.strftime("%H:%M")}'
 
     def __contains__(self, time_range):
         if isinstance(time_range, str):
