@@ -16,7 +16,7 @@ class DateRange:
         self.start = datetime.strptime(self.start, '%H:%M')
         self.end = datetime.strptime(self.end, '%H:%M')
 
-        if self.end <= self.start:
+        if self.end < self.start:
             raise ValueError(f"Wrong time range: {time_range}")
 
     def __str__(self) -> str:
