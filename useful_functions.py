@@ -17,7 +17,6 @@ def validate_time_range(time_range: str):
         "([0-1]?[0-9]|2[0-3]):[0-5][0-9]-([0-1]?[0-9]|2[0-3]):[0-5][0-9]",
         time_range
     )
-    
 
 
 @validate

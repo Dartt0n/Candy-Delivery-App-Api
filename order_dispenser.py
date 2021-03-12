@@ -7,7 +7,7 @@ from order import Order
 class OrderDispenser:
     def __init__(self):
         self.couriers = []
-        self.unactive_orders = []
+        self.inactive_orders = []
 
     def add_new_couriers(self, couriers_json: dict) -> (bool, dict):
         data = couriers_json['data']
@@ -21,7 +21,7 @@ class OrderDispenser:
                 find_same_id = False
                 # проходим по всем уже записанным курьерам и
                 # проверям уникальность нового id
-                for c in self.couriers:  
+                for c in self.couriers:
                     find_same_id = find_same_id or c.id == id
 
                 if find_same_id:
@@ -32,9 +32,12 @@ class OrderDispenser:
                 working_hours = courier['working_hours']
                 new_courier = Courier(id, type, regions, working_hours)
             except (
-                KeyError,  # если нету какого-то поля в json
-                ValidationError,  # если какое-то значение не прошло валидацию по типу
-                ValueError  # если какое-то значение не прошло валидацию по значению
+                    # если нету какого-то поля в json
+                    KeyError,
+                    # если какое-то значение не прошло валидацию по типу
+                    ValidationError,
+                    # если какое-то значение не прошло валидацию по значению
+                    ValueError
             ):
                 failed_ids.append(id)
             except Exception as unknown_exception:
@@ -43,16 +46,16 @@ class OrderDispenser:
             else:
                 self.couriers.append(new_courier)
                 success_ids.append(id)
-        
+
         if failed_ids:  # есть провальные
             return False, {
                 "validation_error": {
-                    "couriers": [{'id':id} for id in failed_ids]
+                    "couriers": [{'id': f_id} for f_id in failed_ids]
                 }
             }
         else:
             return True, {
-                "couriers": [{'id': id} for id in success_ids]
+                "couriers": [{'id': s_id} for s_id in success_ids]
             }
 
     def patch_courier(self, id, patched_data: dict) -> (bool, dict):
@@ -81,9 +84,9 @@ class OrderDispenser:
             try:
                 id = order['order_id']
                 find_same_id = False
-                for o in self.unactive_orders:
+                for o in self.inactive_orders:
                     find_same_id = find_same_id or o.id == id
-                
+
                 if find_same_id:
                     raise ValueError('Not unique id')
 
@@ -92,25 +95,28 @@ class OrderDispenser:
                 delivery_hours = order['delivery_hours']
                 new_order = Order(id, weight, region, delivery_hours)
             except (
-                KeyError,  # если нету какого-то поля в json
-                ValidationError,  # если какое-то значение не прошло валидацию по типу
-                ValueError  # если какое-то значение не прошло валидацию по значению
+                    # если нету какого-то поля в json
+                    KeyError,
+                    # если какое-то значение не прошло валидацию по типу
+                    ValidationError,
+                    # если какое-то значение не прошло валидацию по значению
+                    ValueError
             ):
                 failed_ids.append(id)
             except Exception as unknown_exception:
                 failed_ids.append(id)
                 print('Unchecked Error:', unknown_exception)
             else:
-                self.unactive_orders.append(new_order)
+                self.inactive_orders.append(new_order)
                 success_ids.append(id)
-        
+
         if failed_ids:  # есть провальные
             return False, {
                 "validation_error": {
-                    "orders": [{'id':id} for id in failed_ids]
+                    "orders": [{'id': f_id} for f_id in failed_ids]
                 }
             }
         else:
             return True, {
-                "orders": [{'id': id} for id in success_ids]
+                "orders": [{'id': s_id} for s_id in success_ids]
             }
