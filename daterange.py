@@ -1,9 +1,7 @@
-from collections import Iterable
-from datetime import datetime, timedelta
-from typing import Iterator, Union
-from pydantic import StrictStr
-from valdec.decorators import validate
 from useful_functions import validate_time_range
+from valdec.decorators import validate
+from pydantic import StrictStr
+from datetime import datetime
 
 
 class DateRange:
@@ -26,7 +24,7 @@ class DateRange:
         if isinstance(time_range, str):
             # переводим ошибку в строку
             if '-' not in time_range:  # одно значение, а не промежуток
-                time_range = DateRange(time_range+'-'+time_range)
+                time_range = DateRange(time_range + '-' + time_range)
             else:
                 time_range = DateRange(time_range)
         elif not isinstance(time_range, DateRange):

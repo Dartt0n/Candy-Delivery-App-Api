@@ -1,12 +1,5 @@
-click==7.1.2
 Flask==1.1.2
-itsdangerous==1.1.0
-Jinja2==2.11.3
-MarkupSafe==1.1.1
-pip==21.0.1
 pydantic==1.8.1
 regex==2020.11.13
-setuptools==54.1.1
-typing-extensions==3.7.4.3
 valdec==1.1.0
-Werkzeug==1.0.1
+flask_sqlalchemy==2.4.4

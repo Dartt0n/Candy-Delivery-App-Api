@@ -1,7 +1,7 @@
-from math import inf
+from typing import Callable, Iterable
 from valdec.decorators import validate
 from regex import match
-from typing import List, Callable, Iterable
+from math import inf
 
 
 def find_by(arr: Iterable, condition: Callable) -> int:
