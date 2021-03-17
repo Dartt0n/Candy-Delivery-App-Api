@@ -30,8 +30,12 @@ class Courier:
 
         self.__type = courier_type
 
-        self.__load_capacity = temp
-        self.__free_load_capacity = self.__load_capacity
+        delta = temp - self.__load_capacity
+        self.__load_capacity += delta
+        self.__free_load_capacity += delta
+
+        if self.__load_capacity > 50 or self.__free_load_capacity < 0:
+            raise ValueError()
 
         # множитель заработка
         self.__earn_rate = self.__rate_on_transport[self.__type]
