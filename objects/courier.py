@@ -1,7 +1,7 @@
 from pydantic.types import StrictInt, StrictStr
 from valdec.decorators import validate
 from typing import List, Dict, Any
-from daterange import DateRange
+from misc.daterange import DateRange
 
 
 class Courier:

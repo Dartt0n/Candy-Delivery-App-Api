@@ -1,4 +1,4 @@
-from useful_functions import validate_float, validate_time_range
+from misc.useful_functions import validate_float, validate_time_range
 from pydantic.types import StrictInt, StrictFloat, StrictStr
 from valdec.decorators import validate
 from typing import Union

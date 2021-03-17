@@ -1,4 +1,4 @@
-from useful_functions import validate_time_range
+from misc.useful_functions import validate_time_range
 from valdec.decorators import validate
 from pydantic import StrictStr
 from datetime import datetime
