@@ -21,21 +21,16 @@ class Courier:
         temp = self.__capacity_on_transport[courier_type]
 
         # занято больше чем позволяет транспорт
-        if self.__load_capacity - self.__free_load_capacity > temp:
+        if self.__workload > temp:
             raise ValueError(
                 f"Can not use this transport. Occupied currently: "
-                f"{self.__load_capacity - self.__free_load_capacity}, but "
+                f"{self.__workload}, but "
                 f"transport `{courier_type}` allows only {temp}"
             )
 
         self.__type = courier_type
 
-        delta = temp - self.__load_capacity
-        self.__load_capacity += delta
-        self.__free_load_capacity += delta
-
-        if self.__load_capacity > 50 or self.__free_load_capacity < 0:
-            raise ValueError()
+        self.__load_capacity = temp
 
         # множитель заработка
         self.__earn_rate = self.__rate_on_transport[self.__type]
@@ -51,7 +46,7 @@ class Courier:
     regions = property(fget=__get_regions, fset=__set_regions)
 
     def __get_working_hours(self):
-        return self.__working_hours
+        return [str(wh) for wh in self.__working_hours]
 
     def __set_working_hours(self, working_hours):
         self.__working_hours = []
@@ -94,10 +89,9 @@ class Courier:
         # Словарь значений `район - массив длительностей доставки`
         self.__regions_delivery_durations: Dict[int, List[int]] = {}
 
-        self.__number_of_divorces = 0
-        self.__earnings = 0
-        self.__rating = 0
-        self.__load_capacity = 0
+        self.number_of_divorces = 0
+        self.earnings = 0
+        self.__workload = 0
         self.__free_load_capacity = 0
 
         self.id = courier_id
