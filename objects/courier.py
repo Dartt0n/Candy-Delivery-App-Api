@@ -98,3 +98,15 @@ class Courier:
         self.courier_type = courier_type
         self.regions = regions
         self.working_hours = working_hours
+
+    @validate
+    def config(self, data: Dict):
+        key, value = data.items()[0]
+        if key == 'courier_type':
+            self.courier_type = value
+        elif key == 'working_hours':
+            self.working_hours = value
+        elif key == 'regions':
+            self.regions = value
+        else:
+            raise ValueError('Wrong config parameter')
