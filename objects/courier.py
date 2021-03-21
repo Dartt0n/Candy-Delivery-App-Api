@@ -101,7 +101,7 @@ class Courier:
 
     @validate
     def config(self, data: Dict):
-        key, value = data.items()[0]
+        key, value = list(data.items())[0]
         if key == 'courier_type':
             self.courier_type = value
         elif key == 'working_hours':
