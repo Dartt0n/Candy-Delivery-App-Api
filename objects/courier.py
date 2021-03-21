@@ -5,8 +5,8 @@ from misc.daterange import DateRange
 
 
 class Courier:
-    __capacity_on_transport = {'foot': 10, 'bike': 15, 'car': 50}
-    __rate_on_transport = {'foot': 2, 'bike': 5, 'car': 9}
+    __capacity_on_transport = {"foot": 10, "bike": 15, "car": 50}
+    __rate_on_transport = {"foot": 2, "bike": 5, "car": 9}
 
     def __get_type(self):
         return self.__type
@@ -15,7 +15,7 @@ class Courier:
 
         # проверяем валидность транспортного средства
         if courier_type not in self.__capacity_on_transport.keys():
-            raise ValueError(f'{courier_type} is not valid transport')
+            raise ValueError(f"{courier_type} is not valid transport")
 
         # определяем грузоподъемность взависимости от транспорта
         temp = self.__capacity_on_transport[courier_type]
@@ -75,11 +75,11 @@ class Courier:
 
     @validate
     def __init__(
-            self,  # strict types вызывают исключение и прекращают выполнение
-            courier_id: StrictInt,
-            courier_type: StrictStr,
-            regions: List[StrictInt],
-            working_hours: List[StrictStr]
+        self,  # strict types вызывают исключение и прекращают выполнение
+        courier_id: StrictInt,
+        courier_type: StrictStr,
+        regions: List[StrictInt],
+        working_hours: List[StrictStr],
     ):
         # активные заказы - массив словарей следующей структуры:
         #          'order' -> Обьект класса Order, сам заказ соот

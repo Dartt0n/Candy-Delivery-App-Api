@@ -14,9 +14,7 @@ class Order:
             validate_time_range(time_range)
         self.__delivery_hours = delivery_hours
 
-    delivery_hours = property(
-        fget=__get_delivery_hours, fset=__set_delivery_hours
-    )
+    delivery_hours = property(fget=__get_delivery_hours, fset=__set_delivery_hours)
 
     def __get_region(self):
         return self.__region
@@ -26,7 +24,8 @@ class Order:
 
     region = property(fget=__get_region, fset=__set_region)
 
-    def __get_weight(self): return self.__weight
+    def __get_weight(self):
+        return self.__weight
 
     def __set_weight(self, weight):
         # проверяем валидность веса
@@ -45,11 +44,11 @@ class Order:
 
     @validate
     def __init__(
-            self,
-            order_id: StrictInt,
-            weight: Union[StrictFloat, StrictInt],
-            region: StrictInt,
-            delivery_hours: list[StrictStr]
+        self,
+        order_id: StrictInt,
+        weight: Union[StrictFloat, StrictInt],
+        region: StrictInt,
+        delivery_hours: list[StrictStr],
     ):
         self.id = order_id
         self.weight = weight
