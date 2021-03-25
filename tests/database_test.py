@@ -88,3 +88,7 @@ class DatabaseTestCase(unittest.TestCase):
         )
         self.assertTrue(data[0])
         self.assertEqual(data[-1], {"orders": [{"id": 1}, {"id": 2}, {"id": 3}]})
+
+
+if __name__ == "__main__":
+    unittest.main()

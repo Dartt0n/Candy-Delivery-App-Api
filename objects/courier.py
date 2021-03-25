@@ -1,6 +1,7 @@
+import re
 from pydantic.types import StrictInt, StrictStr
 from valdec.decorators import validate
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 from misc.daterange import DateRange
 
 
@@ -55,16 +56,6 @@ class Courier:
 
     working_hours = property(fget=__get_working_hours, fset=__set_working_hours)
 
-    def __get_free_load_capacity(self):
-        return self.__free_load_capacity
-
-    def __set_free_load_capacity(self, free_load_capacity):
-        self.__free_load_capacity = free_load_capacity
-
-    free_load_capacity = property(
-        fget=__get_free_load_capacity, fset=__set_free_load_capacity
-    )
-
     def __get_id(self):
         return self.__id
 
@@ -73,6 +64,11 @@ class Courier:
 
     id = property(fget=__get_id, fset=__set_id)
 
+    def __get_free_load_capacity(self):
+        return self.__workload - self.__load_capacity
+
+    free_load_capacity = property(fget=__get_free_load_capacity)
+
     @validate
     def __init__(
         self,  # strict types вызывают исключение и прекращают выполнение
@@ -80,19 +76,13 @@ class Courier:
         courier_type: StrictStr,
         regions: List[StrictInt],
         working_hours: List[StrictStr],
+        number_of_divorces: StrictInt = 0,
+        earnings: Union[int, float] = 0,
+        workload: Union[int, float] = 0,
     ):
-        # активные заказы - массив словарей следующей структуры:
-        #          'order' -> Обьект класса Order, сам заказ соот
-        #          'accept time' -> время принятия заказа
-        self.__active_orders: List[Dict[str, Any]] = []
-
-        # Словарь значений `район - массив длительностей доставки`
-        self.__regions_delivery_durations: Dict[int, List[int]] = {}
-
-        self.number_of_divorces = 0
-        self.earnings = 0
-        self.__workload = 0
-        self.__free_load_capacity = 0
+        self.number_of_divorces = number_of_divorces
+        self.earnings = earnings
+        self.__workload = workload
 
         self.id = courier_id
         self.courier_type = courier_type
@@ -110,3 +100,16 @@ class Courier:
             self.regions = value
         else:
             raise ValueError("Wrong config parameter")
+
+    def can_take(self, order) -> bool:
+        hours_flag = False
+        for wh in self.working_hours:
+            hours_flag = (
+                hours_flag or wh in order.delivery_hours
+            )  # работает ли в часы доставки
+        region_flag = False
+        for r in self.regions:
+            region_flag = region_flag or r == order.region  # работает ли в этом регионе
+        weight_flag = order.weight <= self.free_load_capacity  # может нести груз
+
+        return hours_flag and region_flag and weight_flag

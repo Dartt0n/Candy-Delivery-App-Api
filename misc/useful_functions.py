@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 from valdec.decorators import validate
 from typing import Callable, Iterable
 from regex import match
+import dateutil.parser
 from math import inf
 
 
@@ -32,4 +33,12 @@ def validate_float(
 
 
 def rcf_now():
-    return datetime.now(timezone.utc).astimezone().isoformat()
+    return datetime.now(timezone.utc).astimezone().isoformat() + "Z"
+
+
+def parse_rcf(rfc_time):
+    return datetime.fromisoformat(rfc_time[:-1])
+
+
+def datetime_as_int(dt):
+    return int(dt.strftime("%Y%m%d%H%M%S"))

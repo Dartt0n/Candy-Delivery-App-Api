@@ -1,9 +1,11 @@
-from flask_sqlalchemy import SQLAlchemy
-from api.candy_flask import flask_application
 from valdec.errors import ValidationArgumentsError as ValidationError
+from misc.useful_functions import rcf_now, parse_rcf, datetime_as_int
+from misc.backpack_problem import solution as orders_dispense
+from api.candy_flask import flask_application
+from flask_sqlalchemy import SQLAlchemy
 from objects.courier import Courier
 from objects.order import Order
-from misc.useful_functions import rcf_now
+
 
 DATABASE_PATH = "/tmp/test.db"
 
@@ -45,6 +47,8 @@ couriers_regions_relationship = Table(
     "couriers_regions",
     Column("courier_id", Integer, ForeignKey("couriers.id")),
     Column("region_id", Integer, ForeignKey("regions.id")),
+    Column("number_of_divorces", Integer, default=0),
+    Column("average time", Float, default=0),
 )
 
 # таблица для хранения соотвествий между заказами и временем, в которые можно доставить заказ
@@ -74,6 +78,7 @@ class CouriersTable(Model):
     workload = Column(Float, nullable=False)
     number_of_divorces = Column(Integer)
     earnings = Column(Integer)
+    orders = Relationship("OrdersTable", backref="courier", lazy=True)
 
     def __repr__(self):
         return f"""
@@ -93,8 +98,12 @@ class OrdersTable(Model):
     id = Column(Integer, unique=True, primary_key=True, autoincrement=False)
     weight = Column(Float, nullable=False)
     region = Column(Integer)
-    post_time = Column(String(32), nullable=False, default=rcf_now())
     delivery_hours = Relationship("HoursTable", secondary=orders_hours_relationship)
+    # time
+    post_time = Column(String(33), nullable=False, default=rcf_now())
+    assign_time = Column(String(33), nullable=True)
+    complete_time = Column(String(33), nullable=True)
+    courier_id = Column(Integer, ForeignKey("couriers.id"), nullable=True)
 
     def __repr__(self):
         return f"""
@@ -425,8 +434,75 @@ def add_new_orders(orders):
         return True, {"orders": [{"id": c_id} for c_id in successful]}
 
 
-def add_courier_orders():
-    pass
+def add_courier_orders(courier_id):
+    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+    # находим курьера к которому будет добавлять заказы
+    if not courier_db:
+        return False, {}
+
+    courier_data = courier_to_json(courier_db)
+
+    courier = Courier(
+        courier_data["courier_id"],
+        courier_data["courier_type"],
+        courier_data["regions"],
+        courier_data["working_hours"],
+    )
+
+    # находим заказы удовлетворяющие условиям
+    all_orders = [
+        Order(
+            order_id=order.id,
+            weight=order.weight,
+            region=int(RegionsTable.query.filter_by(id=order.region).first().region),
+            delivery_hours=list(map(lambda x: x.hours, order.delivery_hours)),
+            additional_data={"post_time": order.post_time},
+        )
+        for order in OrdersTable.query.all()
+    ]
+
+    orders = list(filter(courier.can_take, all_orders))
+
+    if not orders:
+        return True, {}
+
+    # формируем словарь значений id <-> параметры, для максимально эффективного распределения заказов
+    # Тут: вес заказа = вес предмета, обратное время добавления заказа - ценность заказа
+    # Таким образом, мы будем брать маскимальное количество, а "старые" заказы будут браться активней
+    # см "Задача о рюкзаке"
+    orders_values = [
+        {
+            order.id: [
+                order.weight,
+                -datetime_as_int(parse_rcf(order.config["post_time"])),
+            ]
+        }
+        for order in orders
+    ]
+
+    orders_id = orders_dispense(orders_values, max=courier.free_load_capacity)
+
+    if not orders_id:
+        return True, {}
+
+    assign_time = rcf_now()
+
+    # обновляем базу данных
+    orders_db = []
+    for o_id in orders_id:
+        o = OrdersTable.query.filter_by(id=o_id).first()
+        o.assign_time = assign_time
+        orders_db.append(o)
+        database.session.add(o)
+
+    courier_db.orders = orders_db
+    database.session.add(courier_db)
+    database.session.commit()
+
+    return True, {
+        "orders": [{"id": o_id} for o_id in orders_id],
+        "assign_time": assign_time,
+    }
 
 
 def orders_complete():
