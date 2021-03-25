@@ -102,11 +102,11 @@ class Courier:
     @validate
     def config(self, data: Dict):
         key, value = list(data.items())[0]
-        if key == 'courier_type':
+        if key == "courier_type":
             self.courier_type = value
-        elif key == 'working_hours':
+        elif key == "working_hours":
             self.working_hours = value
-        elif key == 'regions':
+        elif key == "regions":
             self.regions = value
         else:
-            raise ValueError('Wrong config parameter')
+            raise ValueError("Wrong config parameter")

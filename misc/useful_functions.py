@@ -1,5 +1,6 @@
-from typing import Callable, Iterable
+from datetime import datetime, timezone
 from valdec.decorators import validate
+from typing import Callable, Iterable
 from regex import match
 from math import inf
 
@@ -28,3 +29,7 @@ def validate_float(
     assert number == round(number, accuracy)
     assert number <= max_value
     assert number >= min_value
+
+
+def rcf_now():
+    return datetime.now(timezone.utc).astimezone().isoformat()

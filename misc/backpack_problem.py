@@ -19,10 +19,10 @@ def solution(orders, max):
     for i in range(n, 0, -1):
         if res <= 0:
             break
-        if res == V[i- 1][a]:
+        if res == V[i - 1][a]:
             continue
         else:
-            items_list.append((weight[i-1], value[i-1]))
+            items_list.append((weight[i - 1], value[i - 1]))
             res -= value[i - 1]
             a -= weight[i - 1]
 
