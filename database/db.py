@@ -76,14 +76,15 @@ class CouriersTable(Model):
     earnings = Column(Integer)
 
     def __repr__(self):
-        return str(
-            {
-                "courier_id": self.id,
-                "courier_type": self.type,
-                "regions": self.regions,
-                "working_hours": self.working_hours,
-            }
-        )
+        return f"""
+id {self.id}
+type {self.type}
+working_hours {list(map(lambda x: x.hours, self.working_hours))}
+regions {list(map(lambda x: x.region, self.regions))}
+workload {self.workload}
+number_of_divorces {self.number_of_divorces}
+earning {self.earnings}
+"""
 
 
 # таблица заказов
@@ -92,18 +93,17 @@ class OrdersTable(Model):
     id = Column(Integer, unique=True, primary_key=True, autoincrement=False)
     weight = Column(Float, nullable=False)
     region = Column(Integer)
-    post_time = Column(DateTime, nullable=False, default=rcf_now())
+    post_time = Column(String(32), nullable=False, default=rcf_now())
     delivery_hours = Relationship("HoursTable", secondary=orders_hours_relationship)
 
     def __repr__(self):
-        return str(
-            {
-                "order_id": self.id,
-                "weight": self.weight,
-                "region": self.region,
-                "delivery_hours": self.delivery_hours,
-            }
-        )
+        return f"""
+id {self.id}
+weight {self.weight}
+region {self.region}
+post_time {self.post_time}
+delivery_hours {list(map(lambda x: x.hours, self.delivery_hours))}
+"""
 
 
 # таблица часов, для избежания дублирования данных
@@ -123,7 +123,7 @@ class RegionsTable(Model):
     region = Column(Integer, nullable=False)
 
     def __repr__(self):
-        return self.region
+        return f"{self.region}"
 
 
 def new_region(region):
@@ -337,7 +337,6 @@ def update_courier_info(c_id, parameter):
         except (ValueError, AssertionError):
             return False, {}
         else:
-            database.session.commit()
             return True, courier_to_json(CouriersTable.query.filter_by(id=c_id).first())
     else:
         return False, {}
@@ -355,13 +354,15 @@ def save_order(order):
     region = order.region
 
     hours = load_hours(hours)
-
     region = load_region(region)
+
+    database.session.add(region)
+    database.session.commit()
 
     o = OrdersTable(
         id=o_id,
         weight=weight,
-        region=region,
+        region=region.id,
         delivery_hours=hours,
     )
 
@@ -369,10 +370,10 @@ def save_order(order):
 
 
 def save_orders(orders):
-    """Сохраняет курьеров в базу данных и сохраняет изменения
+    """Сохраняет заказы в базу (и сохраняем изменения)
 
     Args:
-        orders (List[Order]): массив курьеров
+        orders (List[Order]): массив заказов
     """
     for order in orders:
         save_order(order)
