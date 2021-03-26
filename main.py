@@ -91,4 +91,4 @@ def get_courier_info(courier_id):
 
 
 if __name__ == "__main__":
-    flask_application.run(host="0.0.0.0", port="8080", debug=True)
+    flask_application.run(host="0.0.0.0", port="8080")

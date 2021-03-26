@@ -109,9 +109,12 @@ class Courier:
     def can_take(self, order) -> bool:
         hours_flag = False
         for wh in self.working_hours:
-            hours_flag = (
-                hours_flag or wh in order.delivery_hours
-            )  # работает ли в часы доставки
+            for dh in order.delivery_hours:
+                dh = DateRange(dh)
+                wh = DateRange(wh)
+                hours_flag = hours_flag or dh in wh  # работает ли в часы доставки
+
+        
         region_flag = False
         for r in self.regions:
             region_flag = region_flag or r == order.region  # работает ли в этом регионе
