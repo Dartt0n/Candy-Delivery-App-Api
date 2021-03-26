@@ -440,6 +440,15 @@ def add_new_orders(orders):
 
 
 def add_courier_orders(courier_id):
+    """Добавляем к курьеру заказы. Использует алгоритм укладки рюкзака, используя вес и время добавления заказы как параметры, для
+    распределения заказов
+
+    Args:
+        courier_id (int): ID курьера, который берет заказы
+
+    Returns:
+        Tuple[bool, dict]: Возвращет кортеж из двух значений: статус операции (успех?) и результат операции
+    """
     courier_db = CouriersTable.query.filter_by(id=courier_id).first()
     # находим курьера к которому будет добавлять заказы
     if not courier_db:
@@ -512,9 +521,27 @@ def add_courier_orders(courier_id):
 
 
 def orders_complete(order_data):
-    courier_id = order_data["courier_id"]
-    order_id = order_data["order_id"]
-    complete_time = order_data["complete_time"]
+    """Отмечает заказы выполнеными
+
+    Args:
+        order_data (dict): данные переданные api, должеы содержать ключи courier_id, order_id, complete_time
+
+    Returns:
+        Tuple[bool, dict]: Возвращет кортеж из двух значений: статус операции (успех?) и результат операции
+    """
+    try:
+        courier_id = order_data["courier_id"]
+        order_id = order_data["order_id"]
+        complete_time = order_data["complete_time"]
+    except KeyError:
+        return False, {}
+
+    if (
+        not isinstance(order_id, int)
+        or not isinstance(courier_id, int)
+        or not isinstance(complete_time, str)
+    ):
+        return False, {}
 
     order_db = OrdersTable.query.filter_by(id=order_id).first()
 
@@ -544,7 +571,10 @@ def orders_complete(order_data):
     order_db.complete_time = complete_time
 
     start = parse_rcf(order_db.assign_time)
-    end = parse_rcf(order_db.complete_time)
+    try:
+        end = parse_rcf(order_db.complete_time)
+    except Exception:
+        return False, {}
 
     delta = (end - start).seconds
 
@@ -554,7 +584,7 @@ def orders_complete(order_data):
         .first()
     )
 
-    crr_courier_id, crr_region_id, crr_average_time, crr_number_of_divorces = crr
+    _, __, crr_average_time, crr_number_of_divorces = crr
 
     crr_average_time = (crr.average_time * crr_number_of_divorces + delta) / (
         crr_number_of_divorces + 1
@@ -575,6 +605,17 @@ def orders_complete(order_data):
 
 
 def courier_info(courier_id):
+    """Возвращем информацию о курьере
+
+    Args:
+        courier_id (int): ID курьера
+
+    Returns:
+        dict: Словарь параметром курьера
+    """
+    if not isinstance(courier_id, int):
+        return {}
+
     courier_json = courier_to_json(CouriersTable.query.filter_by(id=courier_id).first())
 
     region_rows = (
