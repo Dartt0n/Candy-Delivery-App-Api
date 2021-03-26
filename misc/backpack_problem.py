@@ -1,36 +1,36 @@
-def solution(orders, max):
-    A = max
+def solution(orders, max_value):
+    weight = [orders[item][0] for item in orders]
+    value = [orders[item][1] for item in orders]
     n = len(orders)
-    weight = [i[0] for i in orders.values()]
-    value = [i[1] for i in orders.values()]
+    table = [[0 for _ in range(max_value + 1)] for __ in range(n + 1)]
 
-    V = [[0 for i in range(A + 1)] for i in range(n + 1)]
-
-    for i in range(n + 1):
-        for a in range(A + 1):
-            if weight[i - 1] <= a:
-                V[i][a] = max(value[i - 1] + V[i - 1][a - weight[i - 1]], V[i - 1][a])
+    for k in range(n + 1):
+        for s in range(max_value + 1):
+            if k == 0 or s == 0:
+                table[k][s] = 0
+            elif weight[k - 1] <= s:
+                table[k][s] = max(
+                    value[k - 1] + table[k - 1][s - weight[k - 1]], table[k - 1][s]
+                )
             else:
-                V[i][a] = V[i - 1][a]
+                table[k][s] = table[k - 1][s]
 
-    res = V[n][A]
-    a = A
+    res = table[n][max_value]
+    s = max_value
     items_list = []
-    for i in range(n, 0, -1):
+    for k in range(n, 0, -1):
         if res <= 0:
             break
-        if res == V[i - 1][a]:
+        if res == table[k - 1][s]:
             continue
         else:
-            items_list.append((weight[i - 1], value[i - 1]))
-            res -= value[i - 1]
-            a -= weight[i - 1]
-
-    selected = []
-
+            items_list.append((weight[k - 1], value[k - 1]))
+            res -= value[k - 1]
+            s -= weight[k - 1]
+    selected_stuff = []
     for search in items_list:
         for key, value in orders.items():
-            if value == search:
-                selected.append(key)
-
-    return selected
+            if value == search and key not in selected_stuff:
+                selected_stuff.append(key)
+                break
+    return selected_stuff

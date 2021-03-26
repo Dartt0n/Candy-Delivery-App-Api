@@ -2,7 +2,6 @@ from datetime import datetime, timezone
 from valdec.decorators import validate
 from typing import Callable, Iterable
 from regex import match
-import dateutil.parser
 from math import inf
 
 

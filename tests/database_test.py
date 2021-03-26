@@ -1,5 +1,6 @@
 import unittest
 from database.db import *
+from time import sleep
 
 
 def prepare_db():
@@ -63,7 +64,7 @@ class DatabaseTestCase(unittest.TestCase):
         )
 
     def test_adding_new_orders(self):
-        prepare_db()  # я без понятия почему тут ошибка, а дебаг бессилен
+        prepare_db()
         data = add_new_orders(
             [
                 {
@@ -86,8 +87,71 @@ class DatabaseTestCase(unittest.TestCase):
                 },
             ]
         )
+        sleep(3)
+        add_new_orders(
+            [
+                {
+                    "order_id": 20,
+                    "weight": 5,
+                    "region": 2,
+                    "delivery_hours": ["09:00-10:00"],
+                },
+            ]
+        )  # should have different timestamp
+        sleep(1)
         self.assertTrue(data[0])
         self.assertEqual(data[-1], {"orders": [{"id": 1}, {"id": 2}, {"id": 3}]})
+
+    def test_order_assign(self):
+        prepare_db()
+        add_new_couriers(
+            [
+                {
+                    "courier_id": 2,
+                    "courier_type": "bike",
+                    "regions": [1, 2, 3],
+                    "working_hours": ["09:00-10:00", "11:00-12:00"],
+                }
+            ]
+        )
+        add_new_orders(
+            [
+                {
+                    "order_id": 2,
+                    "weight": 5,
+                    "region": 2,
+                    "delivery_hours": ["09:00-10:00"],
+                },
+            ]
+        )
+        sleep(1)
+        add_new_orders(
+            [
+                {
+                    "order_id": 3,
+                    "weight": 5,
+                    "region": 2,
+                    "delivery_hours": ["09:00-10:00"],
+                },
+            ]
+        )
+        sleep(1)
+        add_new_orders(
+            [
+                {
+                    "order_id": 1,
+                    "weight": 5,
+                    "region": 2,
+                    "delivery_hours": ["09:00-10:00"],
+                },
+            ]
+        )
+        data = add_courier_orders(2)
+        self.assertTrue(data[0])
+        self.assertEqual(
+            sorted(data[-1]["orders"], key=lambda x: list(x.values())),
+            [{"id": 1}, {"id": 2}, {"id": 3}],
+        )
 
 
 if __name__ == "__main__":

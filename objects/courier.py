@@ -65,7 +65,7 @@ class Courier:
     id = property(fget=__get_id, fset=__set_id)
 
     def __get_free_load_capacity(self):
-        return self.__workload - self.__load_capacity
+        return self.__load_capacity - self.__workload
 
     free_load_capacity = property(fget=__get_free_load_capacity)
 

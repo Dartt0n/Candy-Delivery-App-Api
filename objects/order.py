@@ -49,7 +49,7 @@ class Order:
         weight: Union[StrictFloat, StrictInt],
         region: StrictInt,
         delivery_hours: list[StrictStr],
-        **additional_data
+        additional_data={},
     ):
         self.id = order_id
         self.weight = weight

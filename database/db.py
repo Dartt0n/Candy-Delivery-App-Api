@@ -100,7 +100,7 @@ class OrdersTable(Model):
     region = Column(Integer)
     delivery_hours = Relationship("HoursTable", secondary=orders_hours_relationship)
     # time
-    post_time = Column(String(33), nullable=False, default=rcf_now())
+    post_time = Column(String(33), nullable=False)
     assign_time = Column(String(33), nullable=True)
     complete_time = Column(String(33), nullable=True)
     courier_id = Column(Integer, ForeignKey("couriers.id"), nullable=True)
@@ -373,6 +373,7 @@ def save_order(order):
         weight=weight,
         region=region.id,
         delivery_hours=hours,
+        post_time=rcf_now(),
     )
 
     database.session.add(o)
@@ -456,31 +457,33 @@ def add_courier_orders(courier_id):
             weight=order.weight,
             region=int(RegionsTable.query.filter_by(id=order.region).first().region),
             delivery_hours=list(map(lambda x: x.hours, order.delivery_hours)),
-            additional_data={"post_time": order.post_time},
+            additional_data={
+                "post_time": order.post_time,
+                "assign_time": order.assign_time,
+            },
         )
         for order in OrdersTable.query.all()
     ]
-
-    orders = list(filter(courier.can_take, all_orders))
+    orders = list(filter(lambda order: order.config["assign_time"] is None, all_orders))
+    orders = list(filter(lambda order: courier.can_take(order), orders))
 
     if not orders:
         return True, {}
 
     # формируем словарь значений id <-> параметры, для максимально эффективного распределения заказов
-    # Тут: вес заказа = вес предмета, обратное время добавления заказа - ценность заказа
-    # Таким образом, мы будем брать маскимальное количество, а "старые" заказы будут браться активней
+    # Тут: вес предмета - время добавления заказа, ценность предмета - его вес
+    # Таким образом, мы будем брать максимальное по цене, соот по весу, а "старые" заказы будут браться активней
     # см "Задача о рюкзаке"
-    orders_values = [
-        {
-            order.id: [
-                order.weight,
-                -datetime_as_int(parse_rcf(order.config["post_time"])),
-            ]
-        }
-        for order in orders
-    ]
 
-    orders_id = orders_dispense(orders_values, max=courier.free_load_capacity)
+    orders_values = {
+        order.id: (
+            int(order.weight * 100),  # минимальный вес 0.01
+            datetime_as_int(parse_rcf(order.config["post_time"])),
+        )
+        for order in orders
+    }
+
+    orders_id = orders_dispense(orders_values, int(courier.free_load_capacity * 100))
 
     if not orders_id:
         return True, {}
