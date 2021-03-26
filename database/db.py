@@ -48,7 +48,7 @@ couriers_regions_relationship = Table(
     Column("courier_id", Integer, ForeignKey("couriers.id")),
     Column("region_id", Integer, ForeignKey("regions.id")),
     Column("number_of_divorces", Integer, default=0),
-    Column("average time", Float, default=0),
+    Column("average_time", Float, default=0),
 )
 
 # таблица для хранения соотвествий между заказами и временем, в которые можно доставить заказ
@@ -89,6 +89,7 @@ regions {list(map(lambda x: x.region, self.regions))}
 workload {self.workload}
 number_of_divorces {self.number_of_divorces}
 earning {self.earnings}
+orders {self.orders}
 """
 
 
@@ -112,6 +113,10 @@ weight {self.weight}
 region {self.region}
 post_time {self.post_time}
 delivery_hours {list(map(lambda x: x.hours, self.delivery_hours))}
+post_time {self.post_time}
+assign_time {self.assign_time}
+complete_time  {self.complete_time}
+courier_id = {self.courier_id}
 """
 
 
@@ -470,11 +475,7 @@ def add_courier_orders(courier_id):
     if not orders:
         return True, {}
 
-    # формируем словарь значений id <-> параметры, для максимально эффективного распределения заказов
-    # Тут: вес предмета - время добавления заказа, ценность предмета - его вес
-    # Таким образом, мы будем брать максимальное по цене, соот по весу, а "старые" заказы будут браться активней
-    # см "Задача о рюкзаке"
-
+    # формируем словарь значений id <-> параметры, для эффективного распределения заказов
     orders_values = {
         order.id: (
             int(order.weight * 100),  # минимальный вес 0.01
@@ -495,6 +496,7 @@ def add_courier_orders(courier_id):
     for o_id in orders_id:
         o = OrdersTable.query.filter_by(id=o_id).first()
         o.assign_time = assign_time
+        o.courier_id = courier_db.id
         orders_db.append(o)
         database.session.add(o)
 
@@ -508,8 +510,51 @@ def add_courier_orders(courier_id):
     }
 
 
-def orders_complete():
-    pass
+def orders_complete(order_data):
+    courier_id = order_data["courier_id"]
+    order_id = order_data["order_id"]
+    complete_time = order_data["complete_time"]
+
+    order_db = OrdersTable.query.filter_by(id=order_id).first()
+
+    if not order_db:
+        return False, {}
+
+    if order_db.courier_id != courier_id:
+        return False, {}
+
+    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+
+    if not courier_db:
+        return False, {}
+
+    order_db.complete_time = complete_time
+
+    start = parse_rcf(order_db.assign_time)
+    end = parse_rcf(order_db.complete_time)
+
+    delta = (end - start).seconds
+
+    crr = database.session.query(couriers_regions_relationship).filter_by(
+        courier_id=courier_id, region_id=order_db.region
+    ).first()
+
+    crr_courier_id, crr_region_id, crr_average_time, crr_number_of_divorces = crr
+
+    crr_average_time = (
+        crr.average_time * crr_number_of_divorces + delta
+    ) / (crr_number_of_divorces + 1)
+    crr_number_of_divorces += 1
+
+    database.session.query(couriers_regions_relationship).filter_by(
+        courier_id=courier_id, region_id=order_db.region
+    ).update({"average_time": crr_average_time, "number_of_divorces": crr_number_of_divorces})
+    database.session.add(order_db)
+    database.session.add(courier_db)
+
+    database.session.commit()
+
+    return True, {"order_id": order_id}
 
 
 def courier_info():

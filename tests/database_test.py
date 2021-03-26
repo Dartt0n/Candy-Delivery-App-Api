@@ -1,6 +1,7 @@
 import unittest
 from database.db import *
 from time import sleep
+from misc.useful_functions import rcf_now
 
 
 def prepare_db():
@@ -152,6 +153,37 @@ class DatabaseTestCase(unittest.TestCase):
             sorted(data[-1]["orders"], key=lambda x: list(x.values())),
             [{"id": 1}, {"id": 2}, {"id": 3}],
         )
+
+    def test_order_complete(self):
+        prepare_db()
+        add_new_couriers(
+            [
+                {
+                    "courier_id": 2,
+                    "courier_type": "bike",
+                    "regions": [1, 2, 3],
+                    "working_hours": ["09:00-10:00", "11:00-12:00"],
+                }
+            ]
+        )
+        add_new_orders(
+            [
+                {
+                    "order_id": 2,
+                    "weight": 5,
+                    "region": 2,
+                    "delivery_hours": ["09:00-10:00"],
+                },
+            ]
+        )
+        add_courier_orders(2)
+        sleep(10)
+        data = orders_complete(
+            {"courier_id": 2, "order_id": 2, "complete_time": rcf_now()}
+        )
+
+        self.assertTrue(data[0])
+        self.assertEqual(data[1], {"order_id": 2})
 
 
 if __name__ == "__main__":
