@@ -185,6 +185,30 @@ class DatabaseTestCase(unittest.TestCase):
         self.assertTrue(data[0])
         self.assertEqual(data[1], {"order_id": 2})
 
+    def test_courier_info(self):
+        prepare_db()
+        add_new_couriers(
+            [
+                {
+                    "courier_id": 2,
+                    "courier_type": "bike",
+                    "regions": [1, 2, 3],
+                    "working_hours": ["09:00-10:00", "11:00-12:00"],
+                }
+            ]
+        )
+        data = courier_info(2)
+        self.assertEqual(
+            data,
+            {
+                "courier_id": 2,
+                "courier_type": "bike",
+                "regions": [1, 2, 3],
+                "working_hours": ["09:00-10:00", "11:00-12:00"],
+                "earnings": 0,
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,3 +1,4 @@
+from re import M
 from valdec.errors import ValidationArgumentsError as ValidationError
 from misc.useful_functions import rcf_now, parse_rcf, datetime_as_int
 from misc.backpack_problem import solution as orders_dispense
@@ -76,7 +77,6 @@ class CouriersTable(Model):
     working_hours = Relationship("HoursTable", secondary=couriers_hours_relationship)
     regions = Relationship("RegionsTable", secondary=couriers_regions_relationship)
     workload = Column(Float, nullable=False)
-    number_of_divorces = Column(Integer)
     earnings = Column(Integer)
     orders = Relationship("OrdersTable", backref="courier", lazy=True)
 
@@ -244,7 +244,6 @@ def save_courier(courier):
         working_hours=hours,
         regions=regions,
         workload=0.0,
-        number_of_divorces=0,
         earnings=0,
     )
     # добавляем обьект курьера в базу данных
@@ -498,9 +497,11 @@ def add_courier_orders(courier_id):
         o.assign_time = assign_time
         o.courier_id = courier_db.id
         orders_db.append(o)
+        courier_db.workload += o.weight
         database.session.add(o)
 
     courier_db.orders = orders_db
+
     database.session.add(courier_db)
     database.session.commit()
 
@@ -525,6 +526,18 @@ def orders_complete(order_data):
 
     courier_db = CouriersTable.query.filter_by(id=courier_id).first()
 
+    courier_json = courier_to_json(courier_db)
+
+    courier = Courier(
+        courier_json["courier_id"],
+        courier_json["courier_type"],
+        courier_json["regions"],
+        courier_json["working_hours"],
+    )
+
+    courier_db.earnings += 500 * courier.earn_rate
+    courier_db.workload -= order_db.weight
+
     if not courier_db:
         return False, {}
 
@@ -535,20 +548,24 @@ def orders_complete(order_data):
 
     delta = (end - start).seconds
 
-    crr = database.session.query(couriers_regions_relationship).filter_by(
-        courier_id=courier_id, region_id=order_db.region
-    ).first()
+    crr = (
+        database.session.query(couriers_regions_relationship)
+        .filter_by(courier_id=courier_id, region_id=order_db.region)
+        .first()
+    )
 
     crr_courier_id, crr_region_id, crr_average_time, crr_number_of_divorces = crr
 
-    crr_average_time = (
-        crr.average_time * crr_number_of_divorces + delta
-    ) / (crr_number_of_divorces + 1)
+    crr_average_time = (crr.average_time * crr_number_of_divorces + delta) / (
+        crr_number_of_divorces + 1
+    )
     crr_number_of_divorces += 1
 
     database.session.query(couriers_regions_relationship).filter_by(
         courier_id=courier_id, region_id=order_db.region
-    ).update({"average_time": crr_average_time, "number_of_divorces": crr_number_of_divorces})
+    ).update(
+        {"average_time": crr_average_time, "number_of_divorces": crr_number_of_divorces}
+    )
     database.session.add(order_db)
     database.session.add(courier_db)
 
@@ -557,5 +574,27 @@ def orders_complete(order_data):
     return True, {"order_id": order_id}
 
 
-def courier_info():
-    pass
+def courier_info(courier_id):
+    courier_json = courier_to_json(CouriersTable.query.filter_by(id=courier_id).first())
+
+    region_rows = (
+        database.session.query(couriers_regions_relationship)
+        .filter_by(courier_id=courier_id)
+        .all()
+    )
+    average_times = list(filter(None, map(lambda x: x[3], region_rows)))
+
+    if average_times:
+        t = min(average_times)
+        rating = (60 * 60 - min(t, 60 * 60)) / (60 * 60) * 5
+    else:
+        rating = None
+
+    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+
+    if rating is not None:
+        courier_json["rating"] = rating
+
+    courier_json["earnings"] = courier_db.earnings
+
+    return courier_json

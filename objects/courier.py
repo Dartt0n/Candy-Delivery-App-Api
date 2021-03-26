@@ -36,6 +36,11 @@ class Courier:
         # множитель заработка
         self.__earn_rate = self.__rate_on_transport[self.__type]
 
+    def __get_earn_rate(self):
+        return self.__earn_rate
+
+    earn_rate = property(fget=__get_earn_rate)
+
     courier_type = property(fget=__get_type, fset=__set_type)
 
     def __get_regions(self):
