@@ -8,6 +8,10 @@ from objects.courier import Courier
 from objects.order import Order
 
 
+# TODO refactor
+
+
+# database file
 DATABASE_PATH = "/tmp/test.db"
 
 # application config
@@ -18,7 +22,7 @@ flask_application.config[
     "SQLALCHEMY_TRACK_MODIFICATIONS"
 ] = False  # убираем предупреждения об устаревших методах
 
-# database file
+
 database = SQLAlchemy(flask_application)
 
 # # # # for clean code # # # #
