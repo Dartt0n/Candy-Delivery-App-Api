@@ -8,7 +8,7 @@ from database.db import (
     orders_complete,
     courier_info,
 )
-from flask import Response, request
+from flask import Response, request, json
 
 
 with flask_application.app_context():
@@ -24,9 +24,9 @@ def post_couriers():
         return Response({}, status=400, mimetype="application/json")
     else:
         if success:
-            return Response(answer, status=201, mimetype="application/json")
+            return Response(json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(answer, status=400, mimetype="application/json")
+            return Response(json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/couriers/<int:courier_id>", methods=["PATCH"])
@@ -38,9 +38,9 @@ def patch_courier(courier_id):
         return Response({}, status=400, mimetype="application/json")
     else:
         if success:
-            return Response(answer, status=200, mimetype="application/json")
+            return Response(json.dumps(answer), status=200, mimetype="application/json")
         else:
-            return Response(answer, status=400, mimetype="application/json")
+            return Response(json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders", methods=["POST"])
@@ -52,9 +52,9 @@ def post_orders():
         return Response({}, status=400, mimetype="application/json")
     else:
         if success:
-            return Response(answer, status=201, mimetype="application/json")
+            return Response(json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(answer, status=400, mimetype="application/json")
+            return Response(json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders/assign", methods=["POST"])
@@ -66,9 +66,9 @@ def assign_orders():
         return Response({}, status=400, mimetype="application/json")
     else:
         if success:
-            return Response(answer, status=201, mimetype="application/json")
+            return Response(json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(answer, status=400, mimetype="application/json")
+            return Response(json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders/complete", methods=["POST"])
@@ -80,9 +80,9 @@ def complete_orders():
         return Response({}, status=400, mimetype="application/json")
     else:
         if success:
-            return Response(answer, status=200, mimetype="application/json")
+            return Response(json.dumps(answer), status=200, mimetype="application/json")
         else:
-            return Response(answer, status=400, mimetype="application/json")
+            return Response(json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/couriers/<int:courier_id>", methods=["GET"])
