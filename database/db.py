@@ -12,7 +12,7 @@ from objects.order import Order
 
 
 # database file
-DATABASE_PATH = "/tmp/test.db"
+DATABASE_PATH = "database.db"
 
 # application config
 flask_application.config[
@@ -269,6 +269,25 @@ def save_couriers(couriers):
     database.session.commit()
 
 
+def courier_db_to_object(courier_db):
+    """Перобразует обьект из базы данных в обьект класса Courier
+
+    Args:
+        courier_db (CouriersTable): обьект из бд
+
+    Returns:
+        Courier: обьект класса
+    """
+    courier_json = courier_to_json(courier_db)
+    courier = Courier(
+        courier_json["courier_id"],
+        courier_json["courier_type"],
+        courier_json["regions"],
+        courier_json["working_hours"],
+    )
+    return courier
+
+
 def add_new_couriers(couriers):
     """Добавляет в базу данных новых курьеров
 
@@ -325,23 +344,20 @@ def update_courier_info(c_id, parameter):
         Если операция прошла успешна, вернет JSON-вид обновленного обьекта
         Если операция проленна, вернет пустой словарь
     """
+    #
+    #
+    #   T O D O : redispense orders and return unavilable
+    #
+    #
+
     if list(parameter.keys())[0] in [
-        "courier_id",
         "courier_type",
         "regions",
         "working_hours",
     ]:  # проверяем, является ли параметр изменяемым
         data = CouriersTable.query.filter_by(id=c_id).first()  # получаем курьера из бд
         try:
-            regions = []  # распаковываем регионы из бд
-            for i in data.regions:
-                regions.append(i.region)
-
-            hours = []  # распаковываем часы из бд
-            for i in data.working_hours:
-                hours.append(i.hours)
-
-            c = Courier(data.id, data.type, regions, hours)  # создает обьект курьера
+            c = courier_db_to_object(data)
             c.config(parameter)  # обновляем обьект, проходя через все валидации
 
             # обновляем данные
@@ -458,14 +474,7 @@ def add_courier_orders(courier_id):
     if not courier_db:
         return False, {}
 
-    courier_data = courier_to_json(courier_db)
-
-    courier = Courier(
-        courier_data["courier_id"],
-        courier_data["courier_type"],
-        courier_data["regions"],
-        courier_data["working_hours"],
-    )
+    courier = courier_db_to_object(courier_db)
 
     # находим заказы удовлетворяющие условиям
     all_orders = [
@@ -557,14 +566,7 @@ def orders_complete(order_data):
 
     courier_db = CouriersTable.query.filter_by(id=courier_id).first()
 
-    courier_json = courier_to_json(courier_db)
-
-    courier = Courier(
-        courier_json["courier_id"],
-        courier_json["courier_type"],
-        courier_json["regions"],
-        courier_json["working_hours"],
-    )
+    courier = courier_db_to_object(courier_db)
 
     courier_db.earnings += 500 * courier.earn_rate
     courier_db.workload -= order_db.weight

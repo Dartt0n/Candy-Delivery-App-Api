@@ -21,12 +21,12 @@ def post_couriers():
         couriers = request.json["data"]
         success, answer = add_new_couriers(couriers)
     except Exception:
-        return Response({}, status=400, mimetype="application/json")
+        return Response(responce=json.dumps({}), status=400, mimetype="application/json")
     else:
         if success:
-            return Response(json.dumps(answer), status=201, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(json.dumps(answer), status=400, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/couriers/<int:courier_id>", methods=["PATCH"])
@@ -35,12 +35,12 @@ def patch_courier(courier_id):
         parameter = request.json
         success, answer = update_courier_info(courier_id, parameter)
     except Exception:
-        return Response({}, status=400, mimetype="application/json")
+        return Response(responce=json.dumps({}), status=400, mimetype="application/json")
     else:
         if success:
-            return Response(json.dumps(answer), status=200, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=200, mimetype="application/json")
         else:
-            return Response(json.dumps(answer), status=400, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders", methods=["POST"])
@@ -49,12 +49,12 @@ def post_orders():
         orders = request.json["data"]
         success, answer = add_new_orders(orders)
     except Exception:
-        return Response({}, status=400, mimetype="application/json")
+        return Response(responce=json.dumps({}), status=400, mimetype="application/json")
     else:
         if success:
-            return Response(json.dumps(answer), status=201, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(json.dumps(answer), status=400, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders/assign", methods=["POST"])
@@ -63,12 +63,12 @@ def assign_orders():
         courier = request.json["courier_id"]
         success, answer = add_courier_orders(courier)
     except Exception:
-        return Response({}, status=400, mimetype="application/json")
+        return Response(responce=json.dumps({}), status=400, mimetype="application/json")
     else:
         if success:
-            return Response(json.dumps(answer), status=201, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=201, mimetype="application/json")
         else:
-            return Response(json.dumps(answer), status=400, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/orders/complete", methods=["POST"])
@@ -77,12 +77,12 @@ def complete_orders():
         data = request.json
         success, answer = orders_complete(data)
     except Exception:
-        return Response({}, status=400, mimetype="application/json")
+        return Response(responce=json.dumps({}), status=400, mimetype="application/json")
     else:
         if success:
-            return Response(json.dumps(answer), status=200, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=200, mimetype="application/json")
         else:
-            return Response(json.dumps(answer), status=400, mimetype="application/json")
+            return Response(responce=json.dumps(answer), status=400, mimetype="application/json")
 
 
 @flask_application.route("/couriers/<int:courier_id>", methods=["GET"])
