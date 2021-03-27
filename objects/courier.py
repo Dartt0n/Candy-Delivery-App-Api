@@ -114,7 +114,6 @@ class Courier:
                 wh = DateRange(wh)
                 hours_flag = hours_flag or dh in wh  # работает ли в часы доставки
 
-        
         region_flag = False
         for r in self.regions:
             region_flag = region_flag or r == order.region  # работает ли в этом регионе

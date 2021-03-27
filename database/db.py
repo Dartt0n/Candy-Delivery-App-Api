@@ -1,4 +1,3 @@
-from re import M
 from valdec.errors import ValidationArgumentsError as ValidationError
 from misc.useful_functions import rcf_now, parse_rcf, datetime_as_int
 from misc.backpack_problem import solution as orders_dispense
@@ -6,13 +5,9 @@ from api.candy_flask import flask_application
 from flask_sqlalchemy import SQLAlchemy
 from objects.courier import Courier
 from objects.order import Order
+import os
 
-
-# TODO refactor
-
-
-# database file
-DATABASE_PATH = "database.db"
+DATABASE_PATH = os.path.abspath(".") + "/database.db"
 
 # application config
 flask_application.config[
@@ -21,7 +16,6 @@ flask_application.config[
 flask_application.config[
     "SQLALCHEMY_TRACK_MODIFICATIONS"
 ] = False  # убираем предупреждения об устаревших методах
-
 
 database = SQLAlchemy(flask_application)
 
@@ -284,8 +278,21 @@ def courier_db_to_object(courier_db):
         courier_json["courier_type"],
         courier_json["regions"],
         courier_json["working_hours"],
+        workload=courier_db.workload,
     )
     return courier
+
+
+def get_courier_by_id(c_id):
+    """Возвращет поле курьера с таким id из бд
+
+    Args:
+        c_id (int): ID курьеров
+
+    Returns:
+        CourierTable: курьер из бд
+    """
+    return CouriersTable.query.filter_by(id=c_id).first()
 
 
 def add_new_couriers(couriers):
@@ -305,6 +312,10 @@ def add_new_couriers(couriers):
 
     for courier_data in couriers:
         c_id = courier_data["courier_id"]
+
+        if get_courier_by_id(c_id):  # not unique id
+            failed.append(c_id)
+            continue
 
         try:
             type = courier_data["courier_type"]
@@ -332,47 +343,49 @@ def add_new_couriers(couriers):
         return True, {"couriers": [{"id": c_id} for c_id in successful]}
 
 
-def update_courier_info(c_id, parameter):
+def update_courier_info(c_id, parameters):
     """Обновлят инфомарцию о курьере, и сохраняет изменения
 
     Args:
         c_id (int): ID курьеров
-        parameter (Dict): словарь параметр: новое_значние
+        parameters (Dict): словарь параметр: новое_значние
 
     Returns:
         Tuple[bool, dict]: Возвращет кортеж из двух значений: статус операции (успех?) и результат операции:
         Если операция прошла успешна, вернет JSON-вид обновленного обьекта
         Если операция проленна, вернет пустой словарь
     """
-    #
-    #
-    #   T O D O : redispense orders and return unavilable
-    #
-    #
+    courier_db = get_courier_by_id(c_id)
 
-    if list(parameter.keys())[0] in [
-        "courier_type",
-        "regions",
-        "working_hours",
-    ]:  # проверяем, является ли параметр изменяемым
-        data = CouriersTable.query.filter_by(id=c_id).first()  # получаем курьера из бд
-        try:
-            c = courier_db_to_object(data)
-            c.config(parameter)  # обновляем обьект, проходя через все валидации
+    courier = courier_db_to_object(courier_db)
 
-            # обновляем данные
-            data.id = c.id
-            data.regions = load_regions(c.regions)
-            data.working_hours = load_hours(c.working_hours)
-            data.type = c.courier_type
-            # сохраняем изменения
-            database.session.commit()
-        except (ValueError, AssertionError):
+    for parameter in parameters:
+        if parameter not in ["courier_type", "regions", "working_hours"]:
             return False, {}
-        else:
-            return True, courier_to_json(CouriersTable.query.filter_by(id=c_id).first())
+
+        try:
+            courier.config({parameter: parameters[parameter]})
+        except (ValueError, ValidationError):
+            return False, {}
+
+    courier_db.type = courier.courier_type
+    courier_db.regions = load_regions(courier.regions)
+    courier_db.working_hours = load_hours(courier.working_hours)
+
+    if courier_db.orders:
+        for order in courier_db.orders:
+            order.assign_time = None
+            order.courier = None
+            database.session.add(order)
+        courier_db.orders = None
+        database.session.add(courier_db)
+        database.session.commit()
+        add_courier_orders(courier_db.id)
     else:
-        return False, {}
+        database.session.add(courier_db)
+        database.session.commit()
+
+    return True, courier_to_json(courier_db)
 
 
 def save_order(order):
@@ -469,7 +482,7 @@ def add_courier_orders(courier_id):
     Returns:
         Tuple[bool, dict]: Возвращет кортеж из двух значений: статус операции (успех?) и результат операции
     """
-    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+    courier_db = get_courier_by_id(courier_id)
     # находим курьера к которому будет добавлять заказы
     if not courier_db:
         return False, {}
@@ -564,7 +577,7 @@ def orders_complete(order_data):
     if order_db.courier_id != courier_id:
         return False, {}
 
-    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+    courier_db = get_courier_by_id(courier_id)
 
     courier = courier_db_to_object(courier_db)
 
@@ -622,7 +635,7 @@ def courier_info(courier_id):
     if not isinstance(courier_id, int):
         return {}
 
-    courier_json = courier_to_json(CouriersTable.query.filter_by(id=courier_id).first())
+    courier_json = courier_to_json(get_courier_by_id(courier_id))
 
     region_rows = (
         database.session.query(couriers_regions_relationship)
@@ -637,7 +650,7 @@ def courier_info(courier_id):
     else:
         rating = None
 
-    courier_db = CouriersTable.query.filter_by(id=courier_id).first()
+    courier_db = get_courier_by_id(courier_id)
 
     if rating is not None:
         courier_json["rating"] = rating

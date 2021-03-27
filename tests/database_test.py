@@ -5,7 +5,7 @@ from misc.useful_functions import rcf_now
 
 
 def prepare_db():
-    with open("/tmp/test.db", "w"):
+    with open(DATABASE_PATH, "w"):
         pass
 
     with flask_application.app_context():
