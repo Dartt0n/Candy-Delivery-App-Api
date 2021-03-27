@@ -22,16 +22,16 @@ def post_couriers():
         success, answer = add_new_couriers(couriers)
     except Exception:
         return Response(
-            responce=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=400, mimetype="application/json"
         )
     else:
         if success:
             return Response(
-                responce=json.dumps(answer), status=201, mimetype="application/json"
+                response=json.dumps(answer), status=201, mimetype="application/json"
             )
         else:
             return Response(
-                responce=json.dumps(answer), status=400, mimetype="application/json"
+                response=json.dumps(answer), status=400, mimetype="application/json"
             )
 
 
@@ -42,16 +42,16 @@ def patch_courier(courier_id):
         success, answer = update_courier_info(courier_id, parameter)
     except Exception:
         return Response(
-            responce=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=400, mimetype="application/json"
         )
     else:
         if success:
             return Response(
-                responce=json.dumps(answer), status=200, mimetype="application/json"
+                response=json.dumps(answer), status=200, mimetype="application/json"
             )
         else:
             return Response(
-                responce=json.dumps(answer), status=400, mimetype="application/json"
+                response=json.dumps(answer), status=400, mimetype="application/json"
             )
 
 
@@ -62,16 +62,16 @@ def post_orders():
         success, answer = add_new_orders(orders)
     except Exception:
         return Response(
-            responce=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=400, mimetype="application/json"
         )
     else:
         if success:
             return Response(
-                responce=json.dumps(answer), status=201, mimetype="application/json"
+                response=json.dumps(answer), status=201, mimetype="application/json"
             )
         else:
             return Response(
-                responce=json.dumps(answer), status=400, mimetype="application/json"
+                response=json.dumps(answer), status=400, mimetype="application/json"
             )
 
 
@@ -82,16 +82,16 @@ def assign_orders():
         success, answer = add_courier_orders(courier)
     except Exception:
         return Response(
-            responce=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=400, mimetype="application/json"
         )
     else:
         if success:
             return Response(
-                responce=json.dumps(answer), status=201, mimetype="application/json"
+                response=json.dumps(answer), status=201, mimetype="application/json"
             )
         else:
             return Response(
-                responce=json.dumps(answer), status=400, mimetype="application/json"
+                response=json.dumps(answer), status=400, mimetype="application/json"
             )
 
 
@@ -102,16 +102,16 @@ def complete_orders():
         success, answer = orders_complete(data)
     except Exception:
         return Response(
-            responce=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=400, mimetype="application/json"
         )
     else:
         if success:
             return Response(
-                responce=json.dumps(answer), status=200, mimetype="application/json"
+                response=json.dumps(answer), status=200, mimetype="application/json"
             )
         else:
             return Response(
-                responce=json.dumps(answer), status=400, mimetype="application/json"
+                response=json.dumps(answer), status=400, mimetype="application/json"
             )
 
 
