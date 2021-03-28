@@ -9,6 +9,15 @@ from database.db import (
     courier_info,
 )
 from flask import Response, request, json
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s - %(message)s",
+    level=logging.DEBUG,
+    datefmt="%d-%b-%y %H:%M:%S",
+    filename="app.log",
+    filemode="w",
+)
 
 
 with flask_application.app_context():
@@ -20,7 +29,8 @@ def post_couriers():
     try:
         couriers = request.json["data"]
         success, answer = add_new_couriers(couriers)
-    except Exception:
+    except Exception as error:
+        logging.error(str(error))
         return Response(
             response=json.dumps({}), status=400, mimetype="application/json"
         )
@@ -40,7 +50,8 @@ def patch_courier(courier_id):
     try:
         parameter = request.json
         success, answer = update_courier_info(courier_id, parameter)
-    except Exception:
+    except Exception as error:
+        logging.error(str(error))
         return Response(
             response=json.dumps({}), status=400, mimetype="application/json"
         )
@@ -60,7 +71,8 @@ def post_orders():
     try:
         orders = request.json["data"]
         success, answer = add_new_orders(orders)
-    except Exception:
+    except Exception as error:
+        logging.error(str(error))
         return Response(
             response=json.dumps({}), status=400, mimetype="application/json"
         )
@@ -80,7 +92,8 @@ def assign_orders():
     try:
         courier = request.json["courier_id"]
         success, answer = add_courier_orders(courier)
-    except Exception:
+    except Exception as error:
+        logging.error(str(error))
         return Response(
             response=json.dumps({}), status=400, mimetype="application/json"
         )
@@ -100,7 +113,8 @@ def complete_orders():
     try:
         data = request.json
         success, answer = orders_complete(data)
-    except Exception:
+    except Exception as error:
+        logging.error(str(error))
         return Response(
             response=json.dumps({}), status=400, mimetype="application/json"
         )

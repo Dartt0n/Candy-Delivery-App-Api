@@ -20,6 +20,8 @@ class Order:
         return self.__region
 
     def __set_region(self, region):
+        if not isinstance(region, int) or region <= 0:
+            raise ValueError('Invalid region')
         self.__region = region
 
     region = property(fget=__get_region, fset=__set_region)
