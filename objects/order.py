@@ -1,4 +1,5 @@
 from misc.useful_functions import validate_float, validate_time_range
+from misc.daterange import DateRange
 from pydantic.types import StrictInt, StrictFloat, StrictStr
 from valdec.decorators import validate
 from typing import Union
@@ -10,8 +11,13 @@ class Order:
 
     def __set_delivery_hours(self, delivery_hours):
         # проверяем валидность часов доставки
+        if not delivery_hours:
+            raise ValueError("Empty delivery hours array")
+
         for time_range in delivery_hours:
+            DateRange(time_range)
             validate_time_range(time_range)
+
         self.__delivery_hours = delivery_hours
 
     delivery_hours = property(fget=__get_delivery_hours, fset=__set_delivery_hours)
@@ -21,7 +27,7 @@ class Order:
 
     def __set_region(self, region):
         if not isinstance(region, int) or region <= 0:
-            raise ValueError('Invalid region')
+            raise ValueError("Invalid region")
         self.__region = region
 
     region = property(fget=__get_region, fset=__set_region)

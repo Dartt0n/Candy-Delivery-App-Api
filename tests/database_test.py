@@ -209,6 +209,45 @@ class DatabaseTestCase(unittest.TestCase):
             },
         )
 
+    def test_adding_order2(self):
+        prepare_db()
+        data = add_new_orders(
+            [
+                {
+                    "order_id": 4,
+                    "weight": 0.23,
+                    "region": -1,
+                    "delivery_hours": ["09:00-18:00"],
+                },
+                {
+                    "order_id": 5,
+                    "weight": 55,
+                    "region": 2,
+                    "delivery_hours": ["09:00-18:00"],
+                },
+                {
+                    "order_id": 6,
+                    "weight": 0.01,
+                    "region": 5,
+                    "delivery_hours": ["19:00-12:00", "16:00-21:30"],
+                },
+                {
+                    "order_id": 7,
+                    "weight": 0.01,
+                    "region": 5,
+                    "delivery_hours": [],
+                },
+            ]
+        )
+        self.assertEqual(
+            data[1],
+            {
+                "validation_error": {
+                    "orders": [{"id": 4}, {"id": 5}, {"id": 6}, {"id": 7}]
+                }
+            },
+        )
+
 
 if __name__ == "__main__":
     unittest.main()
