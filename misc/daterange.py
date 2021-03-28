@@ -1,12 +1,13 @@
 from misc.useful_functions import validate_time_range
-from valdec.decorators import validate
 from pydantic import StrictStr
 from datetime import datetime
 
 
 class DateRange:
-    @validate
     def __init__(self, time_range: StrictStr):
+        if not isinstance(time_range, str):
+            raise ValueError("Wrong type")
+
         validate_time_range(time_range)
 
         self.start, self.end = time_range.split("-")

@@ -7,18 +7,17 @@ from typing import Union
 
 class Order:
     def __get_delivery_hours(self):
-        return self.__delivery_hours
+        return [str(dh) for dh in self.__delivery_hours]
 
     def __set_delivery_hours(self, delivery_hours):
         # проверяем валидность часов доставки
         if not delivery_hours:
             raise ValueError("Empty delivery hours array")
 
+        self.__delivery_hours = []
         for time_range in delivery_hours:
-            DateRange(time_range)
-            validate_time_range(time_range)
-
-        self.__delivery_hours = delivery_hours
+            dh = DateRange(time_range)
+            self.__delivery_hours.append(dh)
 
     delivery_hours = property(fget=__get_delivery_hours, fset=__set_delivery_hours)
 

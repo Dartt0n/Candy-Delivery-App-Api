@@ -248,6 +248,45 @@ class DatabaseTestCase(unittest.TestCase):
             },
         )
 
+    def test_assigning_orders(self):
+        prepare_db()
+        add_new_couriers(
+            [
+                {
+                    "courier_id": 2,
+                    "regions": [1, 2, 3, 4, 5, 6, 7, 8, 9, 1000],
+                    "working_hours": ["01:00-23:00"],
+                    "courier_type": "bike",
+                }
+            ]
+        )
+        add_new_orders(
+            [
+                {
+                    "order_id": 1,
+                    "weight": 0.23,
+                    "region": 1,
+                    "delivery_hours": ["09:00-18:00"],
+                },
+                {
+                    "order_id": 2,
+                    "weight": 15,
+                    "region": 2,
+                    "delivery_hours": ["09:00-18:00"],
+                },
+                {
+                    "order_id": 3,
+                    "weight": 0.01,
+                    "region": 5,
+                    "delivery_hours": ["09:00-12:00", "16:00-21:30"],
+                },
+            ]
+        )
+
+        data = add_courier_orders(2)
+        self.assertTrue(data[0])
+        print(data)
+
 
 if __name__ == "__main__":
     unittest.main()
