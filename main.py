@@ -32,7 +32,7 @@ def post_couriers():
     except Exception as error:
         logging.error(str(error))
         return Response(
-            response=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=500, mimetype="application/json"
         )
     else:
         if success:
@@ -53,7 +53,7 @@ def patch_courier(courier_id):
     except Exception as error:
         logging.error(str(error))
         return Response(
-            response=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=500, mimetype="application/json"
         )
     else:
         if success:
@@ -74,7 +74,7 @@ def post_orders():
     except Exception as error:
         logging.error(str(error))
         return Response(
-            response=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=500, mimetype="application/json"
         )
     else:
         if success:
@@ -95,7 +95,7 @@ def assign_orders():
     except Exception as error:
         logging.error(str(error))
         return Response(
-            response=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=500, mimetype="application/json"
         )
     else:
         if success:
@@ -116,7 +116,7 @@ def complete_orders():
     except Exception as error:
         logging.error(str(error))
         return Response(
-            response=json.dumps({}), status=400, mimetype="application/json"
+            response=json.dumps({}), status=500, mimetype="application/json"
         )
     else:
         if success:
