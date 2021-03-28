@@ -1,5 +1,6 @@
 import unittest
 from requests import post, patch, get
+from misc.useful_functions import rcf_now
 
 url = "http://yandexserver:8080/"
 
@@ -35,6 +36,7 @@ class ApiTestCase(unittest.TestCase):
         )
 
     def test_post_couriers_invalid(self):
+
         data = {
             "data": [
                 {
@@ -65,6 +67,7 @@ class ApiTestCase(unittest.TestCase):
         )
 
     def test_post_orders_valid(self):
+
         data = {
             "data": [
                 {
@@ -92,6 +95,7 @@ class ApiTestCase(unittest.TestCase):
         self.assertEqual(response.json(), {"orders": [{"id": 1}, {"id": 2}, {"id": 3}]})
 
     def test_post_orders_invalid(self):
+
         data = {
             "data": [
                 {
@@ -187,6 +191,7 @@ class ApiTestCase(unittest.TestCase):
         )
 
     def test_orders_assign(self):
+
         patch(
             url + "couriers/2",
             json={
@@ -196,8 +201,27 @@ class ApiTestCase(unittest.TestCase):
             },
         )
         data = post(url + "orders/assign", json={"courier_id": 2})
-        self.assertEqual(data.status_code, 200)
+        self.assertEqual(data.status_code, 201)
         self.assertEqual(data.json()["orders"], [{"id": 3}, {"id": 1}])
+
+    def test_orders_complete(self):
+
+        data1 = {
+            "courier_id": 2,
+            "order_id": 3,
+            "complete_time": rcf_now(),
+        }
+        data2 = {
+            "courier_id": 2,
+            "order_id": 1,
+            "complete_time": rcf_now(),
+        }
+        response = post(url + 'orders/complete', json=data1)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'order_id': 3})
+        response = post(url + 'orders/complete', json=data2)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'order_id': 1})
 
 
 if __name__ == "__main__":
