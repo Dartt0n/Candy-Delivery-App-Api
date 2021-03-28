@@ -455,6 +455,7 @@ def add_new_orders(orders):
 
         except (
             KeyError,  # некоторые параметры отсуствуют в json
+            AssertionError,  # не прошли по значению
             ValidationError,  # некоторые параметры не прошли валидацию типов
             ValueError,  # некоторые параметры не прошли валидацию по значению
         ):
