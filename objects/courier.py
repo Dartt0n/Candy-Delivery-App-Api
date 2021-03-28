@@ -47,7 +47,12 @@ class Courier:
         return self.__regions
 
     def __set_regions(self, regions):
-        self.__regions = regions
+        rg = []
+        for region in regions:
+            if not isinstance(region, int) or region <= 0:
+                raise ValueError
+            rg.append(region)
+        self.__regions = rg
 
     regions = property(fget=__get_regions, fset=__set_regions)
 
